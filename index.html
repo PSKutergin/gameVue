@@ -49,33 +49,34 @@
                     <div class="app__body-top">
                         <div class="app__card">
                             <div class="app__card-text">Счёт</div>
-                            <div class="app__card-count">0</div>
+                            <div class="app__card-count">{{ totalScore }}</div>
                         </div>
                         <div class="app__card">
                             <div class="app__card-text">Открыто рас</div>
-                            <div class="app__card-count">0</div>
+                            <div class="app__card-count">{{ openRaces }}</div>
                         </div>
                         <div class="app__card">
                             <div class="app__card-text">Всего игр</div>
-                            <div class="app__card-count">0</div>
+                            <div class="app__card-count">{{ totalGames }}</div>
                         </div>
                         <div class="app__card">
                             <div class="app__card-text">Любимая раса</div>
-                            <div class="app__card-count">0</div>
+                            <div class="app__card-count">{{ favoriteRace }}</div>
                         </div>
                     </div>
                     <div class="app__body-middle">
-                        <div class="app__result">
+                        <div class="app__result" v-for="(race, k) in results" v-show="showResultRace[k]"
+                            @click="goToResults(k)">
                             <div class="app__result-score">
                                 <i class="fa fa-star" aria-hidden="true"></i>
-                                <div class="app__result-count">150</div>
+                                <div class="app__result-count">{{ race.points }}</div>
                             </div>
-                            <div class="app__result-name">Зерг</div>
-                            <div class="app__result-amount">5</div>
+                            <div class="app__result-name">{{ race.name }}</div>
+                            <div class="app__result-amount">{{ totalGame[k] }}</div>
                         </div>
                     </div>
                     <div class="app__body-bottom">
-                        <button class="app__btn btn__back btn_achivment">
+                        <button class="app__btn btn__back btn_achivment" @click="goToMain">
                             <i class="fa fa-reply" aria-hidden="true"></i>
                         </button>
                     </div>
@@ -253,6 +254,14 @@
                         this.goToResults('primal');
                         this.totalGame.primal++
                     }
+                    //Протосс
+                    else if (this.score.protoss > this.score.zerg &&
+                        this.score.protoss > this.score.terran &&
+                        this.score.taldarim < 5 &&
+                        Math.abs(this.score.protoss - this.score.zerg) > 3) {
+                        this.goToResult('protoss')
+                        this.totalGame.protoss++
+                    }
                     // Талдарим
                     else if (this.score.protoss > this.score.zerg && this.score.protoss > this.score.terran && this.score.taldarim == 5) {
                         this.goToResults('taldarim');
@@ -275,6 +284,42 @@
                     };
                     localStorage.setItem('sc2TotalGame', JSON.stringify(this.totalGame))
                 },
+            },
+            computed: {
+                totalScore() {
+                    let score = 0
+                    for (let i in this.totalGame) {
+                        score += (this.totalGame[i] * results[i].points)
+                    }
+                    return score
+                },
+                openRaces() {
+                    let count = 0
+                    for (let i in this.totalGame) {
+                        if (this.totalGame[i] > 0) count++
+                    }
+                    return count
+                },
+                favoriteRace() {
+                    let max = 'zerg'
+                    for (let i in this.totalGame) {
+                        if (this.totalGame[i] > this.totalGame[max]) {
+                            max = i
+                        }
+                    }
+                    return results[max].name
+                },
+                showResultRace() {
+                    return {
+                        'zerg': this.totalGame.zerg > 0 ? true : false,
+                        'primal': this.totalGame.primal > 0 ? true : false,
+                        'taldarim': this.totalGame.taldarim > 0 ? true : false,
+                        'terran': this.totalGame.terran > 0 ? true : false,
+                        'hybrid': this.totalGame.hybrid > 0 ? true : false,
+                        'infested': this.totalGame.infested > 0 ? true : false,
+                        'protoss': this.totalGame.protoss > 0 ? true : false,
+                    }
+                }
             }
         })
 
